@@ -1,0 +1,13 @@
+do koszyka i do produktu powinny byæ dwa serwery
+
+projekt 4
+U¿yj community-toolkit zamiast czystego c#
+lepiej nie robiæ customowej implementacji onpropertychange
+mvvm toolkit sample app - Microsoft store
+na 3.0 ma nie byæ bazy danych tylko sama komunikacja http
+ma byæ polaczenie http do pierwszego laboratorium
+
+projekt 3
+mowil cos o dodaniu kolejnej tabeli ¿eby dwóch uzytkownikow nie moglo operowaæ na tym samym produkcie w tym samym czasie
+
+skasuj quantity tego ma nie byc ma byc tylko jeden projekt na ktorym operuja uzytkownicy
