@@ -1,6 +1,7 @@
 ﻿using Microsoft.Data.SqlClient;
 using ShoppingBasket.Repository;
 using System.Data;
+using Dapper;
 
 public class SqlProductLockRepository : IProductLockRepository
 {

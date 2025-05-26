@@ -11,11 +11,11 @@ namespace ShoppingBasket.Controllers
     {
         private readonly Dictionary<string, Product> _products = new Dictionary<string, Product>
         {
-            { "1", new Product { ProductId = "1", Name = "Laptop", Price = 3500.00m, Quantity =2 } },
-            { "2", new Product { ProductId = "2", Name = "Smartphone", Price = 1200.00m, Quantity =2} },
-            { "3", new Product { ProductId = "3", Name = "Earpods", Price = 250.00m, Quantity =2} },
-            { "4", new Product { ProductId = "4", Name = "Monitor", Price = 800.00m, Quantity =2} },
-            { "5", new Product { ProductId = "5", Name = "Mouse", Price = 150.00m, Quantity =2} }
+            { "1", new Product { ProductId = "1", Name = "Laptop", Price = 3500.00m} },
+            { "2", new Product { ProductId = "2", Name = "Smartphone", Price = 1200.00m} },
+            { "3", new Product { ProductId = "3", Name = "Earpods", Price = 250.00m} },
+            { "4", new Product { ProductId = "4", Name = "Monitor", Price = 800.00m} },
+            { "5", new Product { ProductId = "5", Name = "Mouse", Price = 150.00m} }
         };
 
         private readonly Dictionary<string, Dictionary<string, DateTime>> _reservations = new Dictionary<string, Dictionary<string, DateTime>>();
