@@ -24,14 +24,14 @@ namespace ShoppingBasket.Repository
             using (IDbConnection db = new SqlConnection(_connectionString))
             {
                 var basket = await db.QueryFirstOrDefaultAsync<Basket>(
-                    "SELECT * FROM Baskets WHERE Id = @Id",
-                    new { Id = basketId });
+                    "SELECT BasketId, UserId, CreatedAt, LastModified, IsFinalized FROM Baskets WHERE BasketId = @BasketId",
+                    new { BasketId = basketId });
 
                 if (basket != null)
                 {
                     basket.Items = new List<BasketItem>();
                     var items = await db.QueryAsync<BasketItem>(
-                        "SELECT * FROM BasketItems WHERE BasketId = @BasketId",
+                        "SELECT ProductId, Name, Price, ReservedUntil FROM BasketItems WHERE BasketId = @BasketId",
                         new { BasketId = basketId });
                     basket.Items.AddRange(items);
                 }
@@ -45,14 +45,14 @@ namespace ShoppingBasket.Repository
             using (IDbConnection db = new SqlConnection(_connectionString))
             {
                 var basket = await db.QueryFirstOrDefaultAsync<Basket>(
-                    "SELECT * FROM Baskets WHERE UserId = @UserId AND IsFinalized = 0",
+                    "SELECT BasketId, UserId, CreatedAt, LastModified, IsFinalized FROM Baskets WHERE UserId = @UserId AND IsFinalized = 0",
                     new { UserId = userId });
 
                 if (basket != null)
                 {
                     basket.Items = new List<BasketItem>();
                     var items = await db.QueryAsync<BasketItem>(
-                        "SELECT * FROM BasketItems WHERE BasketId = @BasketId",
+                        "SELECT ProductId, Name, Price, ReservedUntil FROM BasketItems WHERE BasketId = @BasketId",
                         new { BasketId = basket.BasketId });
                     basket.Items.AddRange(items);
                 }
@@ -71,14 +71,14 @@ namespace ShoppingBasket.Repository
                     try
                     {
                         var exists = await db.ExecuteScalarAsync<int>(
-                            "SELECT COUNT(1) FROM Baskets WHERE Id = @Id",
-                            new { Id = basket.BasketId },
+                            "SELECT COUNT(1) FROM Baskets WHERE BasketId = @BasketId",
+                            new { BasketId = basket.BasketId },
                             transaction);
 
                         if (exists > 0)
                         {
                             await db.ExecuteAsync(
-                                "UPDATE Baskets SET UserId = @UserId, CreatedAt = @CreatedAt, LastModified = @LastModified, IsFinalized = @IsFinalized WHERE Id = @Id",
+                                "UPDATE Baskets SET UserId = @UserId, CreatedAt = @CreatedAt, LastModified = @LastModified, IsFinalized = @IsFinalized WHERE BasketId = @BasketId",
                                 basket,
                                 transaction);
 
@@ -91,7 +91,7 @@ namespace ShoppingBasket.Repository
                         else
                         {
                             await db.ExecuteAsync(
-                                "INSERT INTO Baskets (Id, UserId, CreatedAt, LastModified, IsFinalized) VALUES (@Id, @UserId, @CreatedAt, @LastModified, @IsFinalized)",
+                                "INSERT INTO Baskets (BasketId, UserId, CreatedAt, LastModified, IsFinalized) VALUES (@BasketId, @UserId, @CreatedAt, @LastModified, @IsFinalized)",
                                 basket,
                                 transaction);
                         }
@@ -101,7 +101,7 @@ namespace ShoppingBasket.Repository
                             foreach (var item in basket.Items)
                             {
                                 await db.ExecuteAsync(
-                                    "INSERT INTO BasketItems (BasketId, ProductId, Name, Price, Quantity, ReservedUntil) VALUES (@BasketId, @ProductId, @Name, @Price, @Quantity, @ReservedUntil)",
+                                    "INSERT INTO BasketItems (BasketId, ProductId, Name, Price, ReservedUntil) VALUES (@BasketId, @ProductId, @Name, @Price, @ReservedUntil)",
                                     new
                                     {
                                         BasketId = basket.BasketId,
@@ -130,9 +130,9 @@ namespace ShoppingBasket.Repository
             using (IDbConnection db = new SqlConnection(_connectionString))
             {
                 await db.ExecuteAsync(
-                    "DELETE FROM BasketItems WHERE BasketId = @Id;" +
-                    "DELETE FROM Baskets WHERE Id = @Id",
-                    new { Id = basketId });
+                    "DELETE FROM BasketItems WHERE BasketId = @BasketId;" +
+                    "DELETE FROM Baskets WHERE BasketId = @BasketId",
+                    new { BasketId = basketId });
             }
         }
     }
