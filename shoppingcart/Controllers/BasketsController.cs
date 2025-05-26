@@ -2,7 +2,6 @@
 using ShoppingBasket.Models;
 using ShoppingBasket.Services;
 using shoppingcart.Models;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace ShoppingBasket.Controllers
@@ -82,14 +81,15 @@ namespace ShoppingBasket.Controllers
         [HttpPost("{basketId}/items")]
         public async Task<IActionResult> AddProductToBasket(string basketId, [FromBody] AddProductRequest request)
         {
-            if (request == null || string.IsNullOrEmpty(request.ProductId) || request.Quantity <= 0)
+            if (request == null || string.IsNullOrEmpty(request.ProductId))
             {
                 return BadRequest("Nieprawidłowe dane produktu");
             }
 
             try
             {
-                await _basketService.AddProductToBasketAsync(basketId, request.ProductId, request.Quantity);
+                // Usunięto quantity - zawsze dodajemy jeden produkt
+                await _basketService.AddProductToBasketAsync(basketId, request.ProductId);
                 return Ok();
             }
             catch (System.InvalidOperationException ex)

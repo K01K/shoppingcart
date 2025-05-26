@@ -12,9 +12,12 @@ namespace ShoppingBasket.Services
         private readonly BasketCommandHandler _commandHandler;
         private readonly BasketQueryHandler _queryHandler;
 
-        public BasketService(IBasketRepository basketRepository, IProductService productService)
+        public BasketService(
+            IBasketRepository basketRepository,
+            IProductService productService,
+            IProductLockRepository productLockRepository)
         {
-            _commandHandler = new BasketCommandHandler(basketRepository, productService);
+            _commandHandler = new BasketCommandHandler(basketRepository, productService, productLockRepository);
             _queryHandler = new BasketQueryHandler(basketRepository);
         }
 
@@ -23,13 +26,13 @@ namespace ShoppingBasket.Services
             return _commandHandler.HandleAsync(new CreateBasketCommand { UserId = userId });
         }
 
-        public Task AddProductToBasketAsync(string basketId, string productId, int quantity)
+        // Usunięto parametr quantity - zawsze dodajemy jeden produkt
+        public Task AddProductToBasketAsync(string basketId, string productId)
         {
             return _commandHandler.HandleAsync(new AddProductToBasketCommand
             {
                 BasketId = basketId,
-                ProductId = productId,
-                Quantity = quantity
+                ProductId = productId
             });
         }
 
@@ -57,9 +60,10 @@ namespace ShoppingBasket.Services
             return _queryHandler.HandleAsync(new GetUserActiveBasketQuery { UserId = userId });
         }
 
+        // Obliczanie sumy bez quantity - każdy item to cena * 1
         public decimal CalculateBasketTotal(Basket basket)
         {
-            return basket?.Items?.Sum(item => item.Price * item.Quantity) ?? 0;
+            return basket?.Items?.Sum(item => item.Price) ?? 0;
         }
     }
 }

@@ -108,7 +108,6 @@ namespace ShoppingBasket.Repository
                                         item.ProductId,
                                         item.Name,
                                         item.Price,
-                                        item.Quantity,
                                         item.ReservedUntil
                                     },
                                     transaction);

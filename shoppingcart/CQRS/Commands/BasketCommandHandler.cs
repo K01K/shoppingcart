@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Timers;
@@ -7,6 +6,7 @@ using ShoppingBasket.Models;
 using ShoppingBasket.Repository;
 using ShoppingBasket.Services;
 using ShoppingBasket.CQRS.Commands;
+using System.Collections.Generic;
 
 namespace ShoppingBasket.CQRS.Commands
 {
@@ -18,13 +18,18 @@ namespace ShoppingBasket.CQRS.Commands
     {
         private readonly IBasketRepository _basketRepository;
         private readonly IProductService _productService;
+        private readonly IProductLockRepository _productLockRepository;
         private readonly Dictionary<string, System.Timers.Timer> _basketTimers = new Dictionary<string, System.Timers.Timer>();
         private const int RESERVATION_MINUTES = 15;
 
-        public BasketCommandHandler(IBasketRepository basketRepository, IProductService productService)
+        public BasketCommandHandler(
+            IBasketRepository basketRepository,
+            IProductService productService,
+            IProductLockRepository productLockRepository)
         {
             _basketRepository = basketRepository;
             _productService = productService;
+            _productLockRepository = productLockRepository;
         }
 
         public async Task HandleAsync(CreateBasketCommand command)
@@ -62,32 +67,32 @@ namespace ShoppingBasket.CQRS.Commands
                 throw new InvalidOperationException("Produkt nie istnieje");
             }
 
-            var reservedUntil = DateTime.UtcNow.AddMinutes(RESERVATION_MINUTES);
-            var reservationSuccessful = await _productService.ReserveProductAsync(
-                command.ProductId, command.BasketId, reservedUntil);
-
-            if (!reservationSuccessful)
-            {
-                throw new InvalidOperationException("Nie można zarezerwować produktu");
-            }
-
+            // Sprawdź czy produkt już jest w koszyku
             var existingItem = basket.Items.FirstOrDefault(i => i.ProductId == command.ProductId);
             if (existingItem != null)
             {
-                existingItem.Quantity += command.Quantity;
-                existingItem.ReservedUntil = reservedUntil;
+                throw new InvalidOperationException("Produkt już znajduje się w koszyku");
             }
-            else
+
+            var reservedUntil = DateTime.UtcNow.AddMinutes(RESERVATION_MINUTES);
+
+            // Spróbuj zablokować produkt w tabeli blokad
+            var lockSuccessful = await _productLockRepository.TryLockProductAsync(
+                command.ProductId, command.BasketId, basket.UserId, reservedUntil);
+
+            if (!lockSuccessful)
             {
-                basket.Items.Add(new BasketItem
-                {
-                    ProductId = product.ProductId,
-                    Name = product.Name,
-                    Price = product.Price,
-                    Quantity = command.Quantity,
-                    ReservedUntil = reservedUntil
-                });
+                throw new InvalidOperationException("Produkt jest obecnie zarezerwowany przez innego użytkownika");
             }
+
+            // Dodaj produkt do koszyka (bez quantity - zawsze 1)
+            basket.Items.Add(new BasketItem
+            {
+                ProductId = product.ProductId,
+                Name = product.Name,
+                Price = product.Price,
+                ReservedUntil = reservedUntil
+            });
 
             basket.LastModified = DateTime.UtcNow;
             await _basketRepository.SaveBasketAsync(basket);
@@ -108,7 +113,10 @@ namespace ShoppingBasket.CQRS.Commands
                 basket.Items.Remove(item);
                 basket.LastModified = DateTime.UtcNow;
                 await _basketRepository.SaveBasketAsync(basket);
-                await _productService.ReleaseProductReservationAsync(command.ProductId, command.BasketId);
+
+                // Zwolnij blokadę produktu
+                await _productLockRepository.ReleaseLockAsync(command.ProductId, command.BasketId);
+
                 SetupBasketExpiryTimer(basket.BasketId);
             }
         }
@@ -134,6 +142,10 @@ namespace ShoppingBasket.CQRS.Commands
             basket.IsFinalized = true;
             basket.LastModified = DateTime.UtcNow;
             await _basketRepository.SaveBasketAsync(basket);
+
+            // Zwolnij wszystkie blokady dla tego koszyka
+            await _productLockRepository.ReleaseAllLocksForBasketAsync(basket.BasketId);
+
             RemoveBasketExpiryTimer(basket.BasketId);
         }
 
@@ -170,10 +182,10 @@ namespace ShoppingBasket.CQRS.Commands
             var basket = await _basketRepository.GetBasketAsync(basketId);
             if (basket != null && !basket.IsFinalized)
             {
-                foreach (var item in basket.Items)
-                {
-                    await _productService.ReleaseProductReservationAsync(item.ProductId, basketId);
-                }
+                // Zwolnij wszystkie blokady produktów w koszyku
+                await _productLockRepository.ReleaseAllLocksForBasketAsync(basketId);
+
+                // Usuń koszyk
                 await _basketRepository.DeleteBasketAsync(basketId);
                 RemoveBasketExpiryTimer(basketId);
             }

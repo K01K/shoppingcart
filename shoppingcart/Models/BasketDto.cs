@@ -1,9 +1,9 @@
-﻿using ShoppingBasket.Models;
-using System;
-using System.Collections.Generic;
-
-namespace shoppingcart.Models
+﻿namespace shoppingcart.Models
 {
+    using ShoppingBasket.Models;
+    using System;
+    using System.Collections.Generic;
+
     public class BasketDto
     {
         public string BasketId { get; set; }
@@ -15,9 +15,9 @@ namespace shoppingcart.Models
         public bool IsFinalized { get; set; }
     }
 
+    // Usunięto Quantity z AddProductRequest
     public class AddProductRequest
     {
         public string ProductId { get; set; }
-        public int Quantity { get; set; }
     }
 }
