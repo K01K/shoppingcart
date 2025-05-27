@@ -1,26 +1,26 @@
+using ShoppingBasket.CQRS.Commands;
+using ShoppingBasket.CQRS.Queries;
 using ShoppingBasket.Repository;
 using ShoppingBasket.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Repository registration
 builder.Services.AddScoped<IBasketRepository, SqlBasketRepository>();
 builder.Services.AddScoped<IProductLockRepository, SqlProductLockRepository>();
 
-// Service registration
+builder.Services.AddScoped<BasketCommandHandler>();
+builder.Services.AddScoped<BasketQueryHandler>();
+
 builder.Services.AddScoped<BasketService>();
 
-// HttpClient and ProductService registration
 builder.Services.AddHttpClient<IProductService, HttpProductService>();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
