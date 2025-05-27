@@ -76,7 +76,7 @@ namespace ShoppingBasket.CQRS.Commands
 
             var reservedUntil = DateTime.UtcNow.AddMinutes(RESERVATION_MINUTES);
 
-            // Spróbuj zablokować produkt w tabeli blokad
+            // AUTOMATYCZNE BLOKOWANIE PRODUKTU podczas dodawania do koszyka
             var lockSuccessful = await _productLockRepository.TryLockProductAsync(
                 command.ProductId, command.BasketId, basket.UserId, reservedUntil);
 
@@ -85,7 +85,7 @@ namespace ShoppingBasket.CQRS.Commands
                 throw new InvalidOperationException("Produkt jest obecnie zarezerwowany przez innego użytkownika");
             }
 
-            // Dodaj produkt do koszyka (bez quantity - zawsze 1)
+            // Dodaj produkt do koszyka
             basket.Items.Add(new BasketItem
             {
                 ProductId = product.ProductId,

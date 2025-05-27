@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using ShoppingBasket.Models;
-using System;
 using System.Collections.Generic;
 
 namespace ShoppingBasket.Controllers
@@ -17,8 +16,6 @@ namespace ShoppingBasket.Controllers
             { "4", new Product { ProductId = "4", Name = "Monitor", Price = 800.00m} },
             { "5", new Product { ProductId = "5", Name = "Mouse", Price = 150.00m} }
         };
-
-        private readonly Dictionary<string, Dictionary<string, DateTime>> _reservations = new Dictionary<string, Dictionary<string, DateTime>>();
 
         [HttpGet]
         public ActionResult<IEnumerable<Product>> GetProducts()
@@ -37,67 +34,6 @@ namespace ShoppingBasket.Controllers
             return Ok(product);
         }
 
-        [HttpPost("{productId}/reserve")]
-        public ActionResult ReserveProduct(string productId, [FromBody] ReservationRequest request)
-        {
-            if (!_products.ContainsKey(productId))
-            {
-                return NotFound("Produkt nie został znaleziony");
-            }
-
-            lock (_reservations)
-            {
-                if (_reservations.TryGetValue(productId, out var basketReservations))
-                {
-                    foreach (var kvp in basketReservations)
-                    {
-                        if (kvp.Key != request.BasketId && kvp.Value > DateTime.UtcNow)
-                        {
-                            return BadRequest("Produkt jest już zarezerwowany");
-                        }
-                    }
-
-                    basketReservations[request.BasketId] = request.ReservedUntil;
-                }
-                else
-                {
-                    _reservations[productId] = new Dictionary<string, DateTime>
-                    {
-                        { request.BasketId, request.ReservedUntil }
-                    };
-                }
-            }
-
-            return Ok();
-        }
-
-        [HttpDelete("{productId}/reserve/{basketId}")]
-        public ActionResult ReleaseProductReservation(string productId, string basketId)
-        {
-            if (!_products.ContainsKey(productId))
-            {
-                return NotFound("Produkt nie został znaleziony");
-            }
-
-            lock (_reservations)
-            {
-                if (_reservations.TryGetValue(productId, out var basketReservations))
-                {
-                    basketReservations.Remove(basketId);
-                    if (basketReservations.Count == 0)
-                    {
-                        _reservations.Remove(productId);
-                    }
-                }
-            }
-
-            return Ok();
-        }
-    }
-
-    public class ReservationRequest
-    {
-        public string BasketId { get; set; }
-        public DateTime ReservedUntil { get; set; }
+        // USUNIĘTO niepotrzebne endpointy rezerwacji - blokowanie odbywa się automatycznie w domenie koszyka
     }
 }
