@@ -2,7 +2,6 @@
 using ShoppingBasket.Models;
 using ShoppingBasket.Services;
 using shoppingcart.Models;
-using System.Threading.Tasks;
 
 namespace ShoppingBasket.Controllers
 {
@@ -88,11 +87,10 @@ namespace ShoppingBasket.Controllers
 
             try
             {
-                // Usunięto quantity - zawsze dodajemy jeden produkt
                 await _basketService.AddProductToBasketAsync(basketId, request.ProductId);
                 return Ok();
             }
-            catch (System.InvalidOperationException ex)
+            catch (InvalidOperationException ex)
             {
                 return BadRequest(ex.Message);
             }
@@ -106,7 +104,7 @@ namespace ShoppingBasket.Controllers
                 await _basketService.RemoveProductFromBasketAsync(basketId, productId);
                 return Ok();
             }
-            catch (System.InvalidOperationException ex)
+            catch (InvalidOperationException ex)
             {
                 return BadRequest(ex.Message);
             }
@@ -120,7 +118,7 @@ namespace ShoppingBasket.Controllers
                 await _basketService.FinalizeBasketAsync(basketId);
                 return Ok();
             }
-            catch (System.InvalidOperationException ex)
+            catch (InvalidOperationException ex)
             {
                 return BadRequest(ex.Message);
             }

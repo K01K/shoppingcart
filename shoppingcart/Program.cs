@@ -14,10 +14,9 @@ builder.Services.AddScoped<IProductLockRepository, SqlProductLockRepository>();
 
 // Service registration
 builder.Services.AddScoped<BasketService>();
-builder.Services.AddScoped<IProductService, LocalProductService>();
 
-// HttpClient for external services
-builder.Services.AddHttpClient();
+// HttpClient and ProductService registration
+builder.Services.AddHttpClient<IProductService, HttpProductService>();
 
 var app = builder.Build();
 
