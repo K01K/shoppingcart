@@ -15,7 +15,6 @@
         public bool IsFinalized { get; set; }
     }
 
-    // Usunięto Quantity z AddProductRequest
     public class AddProductRequest
     {
         public string ProductId { get; set; }

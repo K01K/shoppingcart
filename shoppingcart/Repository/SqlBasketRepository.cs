@@ -82,7 +82,6 @@ namespace ShoppingBasket.Repository
                                 basket,
                                 transaction);
 
-                            // Delete all items to replace with new ones
                             await db.ExecuteAsync(
                                 "DELETE FROM BasketItems WHERE BasketId = @BasketId",
                                 new { BasketId = basket.BasketId },

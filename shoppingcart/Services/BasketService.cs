@@ -26,7 +26,6 @@ namespace ShoppingBasket.Services
             return _commandHandler.HandleAsync(new CreateBasketCommand { UserId = userId });
         }
 
-        // Usunięto parametr quantity - zawsze dodajemy jeden produkt
         public Task AddProductToBasketAsync(string basketId, string productId)
         {
             return _commandHandler.HandleAsync(new AddProductToBasketCommand
@@ -60,7 +59,6 @@ namespace ShoppingBasket.Services
             return _queryHandler.HandleAsync(new GetUserActiveBasketQuery { UserId = userId });
         }
 
-        // Obliczanie sumy bez quantity - każdy item to cena * 1
         public decimal CalculateBasketTotal(Basket basket)
         {
             return basket?.Items?.Sum(item => item.Price) ?? 0;

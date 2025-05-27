@@ -67,7 +67,6 @@ namespace ShoppingBasket.CQRS.Commands
                 throw new InvalidOperationException("Produkt nie istnieje");
             }
 
-            // Sprawdź czy produkt już jest w koszyku
             var existingItem = basket.Items.FirstOrDefault(i => i.ProductId == command.ProductId);
             if (existingItem != null)
             {
@@ -76,7 +75,6 @@ namespace ShoppingBasket.CQRS.Commands
 
             var reservedUntil = DateTime.UtcNow.AddMinutes(RESERVATION_MINUTES);
 
-            // AUTOMATYCZNE BLOKOWANIE PRODUKTU podczas dodawania do koszyka
             var lockSuccessful = await _productLockRepository.TryLockProductAsync(
                 command.ProductId, command.BasketId, basket.UserId, reservedUntil);
 
@@ -85,7 +83,6 @@ namespace ShoppingBasket.CQRS.Commands
                 throw new InvalidOperationException("Produkt jest obecnie zarezerwowany przez innego użytkownika");
             }
 
-            // Dodaj produkt do koszyka
             basket.Items.Add(new BasketItem
             {
                 ProductId = product.ProductId,
@@ -114,7 +111,6 @@ namespace ShoppingBasket.CQRS.Commands
                 basket.LastModified = DateTime.UtcNow;
                 await _basketRepository.SaveBasketAsync(basket);
 
-                // Zwolnij blokadę produktu
                 await _productLockRepository.ReleaseLockAsync(command.ProductId, command.BasketId);
 
                 SetupBasketExpiryTimer(basket.BasketId);
@@ -143,7 +139,6 @@ namespace ShoppingBasket.CQRS.Commands
             basket.LastModified = DateTime.UtcNow;
             await _basketRepository.SaveBasketAsync(basket);
 
-            // Zwolnij wszystkie blokady dla tego koszyka
             await _productLockRepository.ReleaseAllLocksForBasketAsync(basket.BasketId);
 
             RemoveBasketExpiryTimer(basket.BasketId);
@@ -182,10 +177,7 @@ namespace ShoppingBasket.CQRS.Commands
             var basket = await _basketRepository.GetBasketAsync(basketId);
             if (basket != null && !basket.IsFinalized)
             {
-                // Zwolnij wszystkie blokady produktów w koszyku
                 await _productLockRepository.ReleaseAllLocksForBasketAsync(basketId);
-
-                // Usuń koszyk
                 await _basketRepository.DeleteBasketAsync(basketId);
                 RemoveBasketExpiryTimer(basketId);
             }

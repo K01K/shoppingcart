@@ -45,20 +45,6 @@ namespace ShoppingBasket.Services
                 return null;
             }
         }
-
-        public Task<bool> ReserveProductAsync(string productId, string basketId, DateTime reservedUntil)
-        {
-            // W tej implementacji blokady są w ProductLockRepository, więc zawsze zwracamy true
-            // jeśli produkt istnieje
-            return Task.FromResult(true);
-        }
-
-        public Task ReleaseProductReservationAsync(string productId, string basketId)
-        {
-            // W tej implementacji blokady są w ProductLockRepository
-            return Task.CompletedTask;
-        }
-
         private class ProductDto
         {
             public string ProductId { get; set; }

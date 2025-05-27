@@ -26,7 +26,6 @@ namespace ShoppingBasket.Repository
                 {
                     try
                     {
-                        // Sprawdź czy produkt jest już zablokowany przez innego użytkownika
                         var existingLock = await db.QueryFirstOrDefaultAsync<ProductLock>(
                             @"SELECT * FROM ProductLocks 
                                   WHERE ProductId = @ProductId 
@@ -37,13 +36,11 @@ namespace ShoppingBasket.Repository
 
                         if (existingLock != null && existingLock.BasketId != basketId)
                         {
-                            // Produkt jest zablokowany przez kogoś innego
                             return false;
                         }
 
                         if (existingLock != null && existingLock.BasketId == basketId)
                         {
-                            // Aktualizuj istniejącą blokadę dla tego samego koszyka
                             await db.ExecuteAsync(
                                 @"UPDATE ProductLocks 
                                       SET ExpiresAt = @ExpiresAt, LockedAt = GETUTCDATE() 
@@ -53,7 +50,6 @@ namespace ShoppingBasket.Repository
                         }
                         else
                         {
-                            // Utwórz nową blokadę
                             await db.ExecuteAsync(
                                 @"INSERT INTO ProductLocks (ProductId, BasketId, UserId, LockedAt, ExpiresAt, IsActive) 
                                       VALUES (@ProductId, @BasketId, @UserId, GETUTCDATE(), @ExpiresAt, 1)",
