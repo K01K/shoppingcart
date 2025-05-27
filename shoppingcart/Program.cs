@@ -14,12 +14,7 @@ builder.Services.AddScoped<IProductLockRepository, SqlProductLockRepository>();
 
 // Service registration
 builder.Services.AddScoped<BasketService>();
-builder.Services.AddScoped<IProductService>(provider =>
-{
-    var configuration = provider.GetRequiredService<IConfiguration>();
-    var productServiceUrl = configuration["ProductServiceUrl"] ?? "https://localhost:5001";
-    return new HttpProductService(productServiceUrl);
-});
+builder.Services.AddScoped<IProductService, LocalProductService>();
 
 // HttpClient for external services
 builder.Services.AddHttpClient();
